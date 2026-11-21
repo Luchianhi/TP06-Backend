@@ -1,3 +1,4 @@
+const pool = require('../config/db');
 const productRepo = require('../repositories/productRepository');
 const categoryRepo = require('../repositories/categoryRepository');
 
@@ -36,4 +37,37 @@ async function deleteProduct(id) {
   await productRepo.remove(id);
 }
 
-module.exports = {listProducts, getProduct, createProduct, updateProduct, deleteProduct};
+async function searchProducts(query) {
+  const allowedSort = ['id', 'name', 'price', 'category_id'];
+  const sort = allowedSort.includes(query.sort) ? query.sort : 'name';
+  return await productRepo.search({...query, sort});
+}
+
+async function createProductWithCategory(product, categoryName) {
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+    let categoryId;
+    if (categoryName) {
+      const [catRows] = await connection.execute('SELECT id FROM categories WHERE name = ?', [categoryName]);
+      if (catRows.length) {
+        categoryId = catRows[0].id;
+      } else {
+        const [catResult] = await connection.execute('INSERT INTO categories (name) VALUES (?)', [categoryName]);
+        categoryId = catResult.insertId;
+      }
+    }
+    const [result] = await connection.execute(
+      'INSERT INTO products (name,price,category_id) VALUES (?,?,?)',
+      [product.name, product.price, categoryId]
+    );
+    await connection.commit();
+    return {id: result.insertId, ...product, category_id: categoryId};
+  } catch (e) {
+    await connection.rollback();
+    throw e;
+  } finally {
+    connection.release();
+  }
+}
+module.exports = {listProducts, getProduct, createProduct, updateProduct, deleteProduct, searchProducts, createProductWithCategory};

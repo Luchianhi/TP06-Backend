@@ -35,4 +35,18 @@ async function remove(req, res, next) {
   } catch (err) { next(err); }
 }
 
-module.exports = {getAll, getOne, create, update, remove};
+async function search(req, res, next) {
+  try {
+    const products = await productService.searchProducts(req.query);
+    res.json(products);
+  } catch (err) { next(err); }
+}
+
+async function createWithCategory(req, res, next) {
+  try {
+    const {categoryName, ...product} = req.body;
+    const created = await productService.createProductWithCategory(product, categoryName);
+    res.status(201).json(created);
+  } catch (err) { next(err); }
+}
+module.exports = {getAll, getOne, create, update, remove, search, createWithCategory};

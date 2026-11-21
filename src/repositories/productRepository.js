@@ -32,4 +32,16 @@ async function remove(id) {
   await pool.execute('DELETE FROM products WHERE id = ?', [id]);
 }
 
-module.exports = {getAll, getById, create, update, remove};
+async function search({name, minPrice, maxPrice, categoryId, limit=10, offset=0, sort='name'}) {
+  let sql = 'SELECT * FROM products WHERE 1=1';
+  const params = [];
+  if (name) { sql += ' AND name LIKE ?'; params.push(`%${name}%`); }
+  if (minPrice) { sql += ' AND price >= ?'; params.push(minPrice); }
+  if (maxPrice) { sql += ' AND price <= ?'; params.push(maxPrice); }
+  if (categoryId) { sql += ' AND category_id = ?'; params.push(categoryId); }
+  sql += ` ORDER BY ${sort} LIMIT ? OFFSET ?`;
+  params.push(parseInt(limit), parseInt(offset));
+  const [rows] = await pool.execute(sql, params);
+  return rows;
+}
+module.exports = {getAll, getById, create, update, remove, search};
