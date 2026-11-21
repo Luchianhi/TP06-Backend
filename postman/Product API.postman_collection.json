@@ -1,0 +1,721 @@
+{
+  "info": {
+    "_postman_id": "5a72b937-3739-4fc8-9ca5-56475e8cf2b0",
+    "name": "Product API",
+    "description": "LAB 6 – Intégration MySQL et gestion asynchrone avec Node.js. Tests CRUD, recherche, pagination et transactions. Lancez le serveur (npm start) puis exécutez les dossiers dans l'ordre, ou toute la collection avec le Runner.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1 - Products (CRUD)",
+      "item": [
+        {
+          "name": "Lister les produits",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/products"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Renvoie un tableau', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Obtenir le produit 1",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/products/1"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Produit id 1', () => pm.expect(pm.response.json().id).to.eql(1));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Produit inexistant (404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/products/999"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 404', () => pm.response.to.have.status(404));",
+                  "pm.test('Message Product not found', () => pm.expect(pm.response.json().error).to.eql('Product not found'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Créer un produit",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/products",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Casque audio\",\n  \"price\": 59.99,\n  \"category_id\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 201', () => pm.response.to.have.status(201));",
+                  "const p = pm.response.json();",
+                  "pm.test('Id renvoyé', () => pm.expect(p.id).to.be.a('number'));",
+                  "pm.collectionVariables.set('productId', p.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Créer un produit invalide (validation 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/products",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"ab\",\n  \"price\": -5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Tableau errors', () => pm.expect(pm.response.json().errors).to.be.an('array').that.is.not.empty);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Créer un produit avec catégorie inconnue (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/products",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Lampe\",\n  \"price\": 25,\n  \"category_id\": 99\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Message Invalid category_id', () => pm.expect(pm.response.json().error).to.eql('Invalid category_id'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Modifier le produit créé",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/products/{{productId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Casque Pro\",\n  \"price\": 79.99,\n  \"category_id\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Nom modifié', () => pm.expect(pm.response.json().name).to.eql('Casque Pro'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Modifier un produit inexistant (404)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/products/999",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Fantome\",\n  \"price\": 10,\n  \"category_id\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 404', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2 - Recherche, filtrage, pagination, tri",
+      "item": [
+        {
+          "name": "Recherche : filtres + tri + pagination",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/products/search?name=a&minPrice=10&sort=price&limit=2&offset=0"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 200', () => pm.response.to.have.status(200));",
+                  "const r = pm.response.json();",
+                  "pm.test('2 résultats au plus', () => pm.expect(r.length).to.be.at.most(2));",
+                  "pm.test('Trié par prix croissant', () => { for (let i = 1; i < r.length; i++) pm.expect(Number(r[i].price)).to.be.at.least(Number(r[i-1].price)); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Recherche : par catégorie",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/products/search?categoryId=1"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Tous en catégorie 1', () => pm.response.json().forEach(p => pm.expect(p.category_id).to.eql(1)));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Recherche : page 2 (limit=1, offset=1)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/products/search?limit=1&offset=1"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 200', () => pm.response.to.have.status(200));",
+                  "pm.test('1 résultat', () => pm.expect(pm.response.json().length).to.eql(1));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Recherche : tri malveillant ignoré",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/products/search?sort=price;DROP%20TABLE%20products"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Liste renvoyée (table intacte)', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3 - Transaction produit + catégorie",
+      "item": [
+        {
+          "name": "Créer produit + catégorie (commit)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/products/with-category",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Puzzle\",\n  \"price\": 12.5,\n  \"categoryName\": \"Jeux\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 201', () => pm.response.to.have.status(201));",
+                  "pm.test('category_id renseigné', () => pm.expect(pm.response.json().category_id).to.be.a('number'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Créer produit sans prix (rollback)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/products/with-category",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Robot\",\n  \"categoryName\": \"Robotique\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Vérifier le rollback",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/categories"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Robotique absente (rollback effectué)', () => pm.expect(pm.response.json().map(c => c.name)).to.not.include('Robotique'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4 - Categories (CRUD)",
+      "item": [
+        {
+          "name": "Lister les catégories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/categories"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Renvoie un tableau', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Obtenir la catégorie 2",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/categories/2"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Livres', () => pm.expect(pm.response.json().name).to.eql('Livres'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Catégorie inexistante (404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/categories/999"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 404', () => pm.response.to.have.status(404));",
+                  "pm.test('Message Category not found', () => pm.expect(pm.response.json().error).to.eql('Category not found'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Créer une catégorie",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/categories",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{categoryName}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Nom unique à chaque exécution (la colonne name est UNIQUE)",
+                  "pm.collectionVariables.set('categoryName', 'Jouets-' + Date.now());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('categoryId', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Créer une catégorie trop courte (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/categories",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"J\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Message Category name too short', () => pm.expect(pm.response.json().errors[0].msg).to.eql('Category name too short'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Modifier la catégorie créée",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/categories/{{categoryId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{categoryName}}-modif\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Supprimer une catégorie liée à des produits (400)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/categories/1",
+            "description": "Avec le code de l'énoncé (étape 12), le statut est 400 mais le message est 'products.filter is not a function'. Avec la correction proposée dans le guide, le message attendu est 'Cannot delete category with linked products'."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Message Cannot delete category with linked products', () => pm.expect(pm.response.json().error).to.eql('Cannot delete category with linked products'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Supprimer la catégorie créée",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/categories/{{categoryId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 204', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "5 - Nettoyage",
+      "item": [
+        {
+          "name": "Supprimer le produit créé",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/products/{{productId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 204', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Vérifier la suppression (404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/products/{{productId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 404', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Supprimer un produit inexistant (404)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/products/999"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Statut 404', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "productId",
+      "value": ""
+    },
+    {
+      "key": "categoryId",
+      "value": ""
+    },
+    {
+      "key": "categoryName",
+      "value": ""
+    }
+  ]
+}
