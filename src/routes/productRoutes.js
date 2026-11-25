@@ -1,17 +1,14 @@
-import express from 'express';
-import * as controller from '../controllers/productController.js';
-import {productRules, validate} from '../middlewares/validation.js';
-import { authorize } from '../middleware/auth.js';
-
+const express = require('express');
 const router = express.Router();
+const controller = require('../controllers/productController');
+const {productRules, validate} = require('../middlewares/validation');
 
-// GET reste accessible à tout USER authentifié
 router.get('/', controller.getAll);
 router.get('/search', controller.search);
 router.get('/:id', controller.getOne);
-router.post('/', authorize('ADMIN'), productRules, validate, controller.create);
-router.put('/:id', authorize('ADMIN'), productRules, validate, controller.update);
-router.delete('/:id', authorize('ADMIN'), controller.remove);
-router.post('/with-category', authorize('ADMIN'), controller.createWithCategory);
+router.post('/', productRules, validate, controller.create);
+router.put('/:id', productRules, validate, controller.update);
+router.delete('/:id', controller.remove);
+router.post('/with-category', controller.createWithCategory);
 
-export default router;
+module.exports = router;

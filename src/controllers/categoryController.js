@@ -1,4 +1,4 @@
-import * as categoryService from '../services/categoryService.js';
+const categoryService = require('../services/categoryService');
 
 async function getAll(req, res, next) {
   try { const categories = await categoryService.listCategories(); res.json(categories); }
@@ -25,4 +25,4 @@ async function remove(req, res, next) {
   catch (err) { next(err); }
 }
 
-export {getAll, getOne, create, update, remove};
+module.exports = {getAll, getOne, create, update, remove};

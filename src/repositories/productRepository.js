@@ -1,4 +1,4 @@
-import pool from '../config/db.js';
+const pool = require('../config/db');
 
 async function getAll() {
   const [rows] = await pool.query('SELECT * FROM products');
@@ -44,4 +44,4 @@ async function search({name, minPrice, maxPrice, categoryId, limit=10, offset=0,
   const [rows] = await pool.execute(sql, params);
   return rows;
 }
-export {getAll, getById, create, update, remove, search};
+module.exports = {getAll, getById, create, update, remove, search};

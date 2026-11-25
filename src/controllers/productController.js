@@ -1,4 +1,4 @@
-import * as productService from '../services/productService.js';
+const productService = require('../services/productService');
 
 async function getAll(req, res, next) {
   try {
@@ -49,4 +49,4 @@ async function createWithCategory(req, res, next) {
     res.status(201).json(created);
   } catch (err) { next(err); }
 }
-export {getAll, getOne, create, update, remove, search, createWithCategory};
+module.exports = {getAll, getOne, create, update, remove, search, createWithCategory};
