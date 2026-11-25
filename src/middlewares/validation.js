@@ -1,4 +1,4 @@
-const {body, param, validationResult} = require('express-validator');
+import {body, param, validationResult} from 'express-validator';
 
 const productRules = [
   body('name').isString().isLength({min:3}).withMessage('Name must be at least 3 chars'),
@@ -18,4 +18,4 @@ function validate(req, res, next) {
   next();
 }
 
-module.exports = {productRules, categoryRules, validate};
+export {productRules, categoryRules, validate};

@@ -1,5 +1,5 @@
-const categoryRepo = require('../repositories/categoryRepository');
-const productRepo = require('../repositories/productRepository');
+import * as categoryRepo from '../repositories/categoryRepository.js';
+import * as productRepo from '../repositories/productRepository.js';
 
 async function listCategories() {
   return await categoryRepo.getAll();
@@ -29,4 +29,4 @@ async function deleteCategory(id) {
   await categoryRepo.remove(id);
 }
 
-module.exports = {listCategories, getCategory, createCategory, updateCategory, deleteCategory};
+export {listCategories, getCategory, createCategory, updateCategory, deleteCategory};

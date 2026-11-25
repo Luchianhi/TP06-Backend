@@ -1,7 +1,7 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const controller = require('../controllers/categoryController');
-const {categoryRules, validate} = require('../middlewares/validation');
+import * as controller from '../controllers/categoryController.js';
+import {categoryRules, validate} from '../middlewares/validation.js';
 
 router.get('/', controller.getAll);
 router.get('/:id', controller.getOne);
@@ -9,4 +9,4 @@ router.post('/', categoryRules, validate, controller.create);
 router.put('/:id', categoryRules, validate, controller.update);
 router.delete('/:id', controller.remove);
 
-module.exports = router;
+export default router;

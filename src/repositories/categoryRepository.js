@@ -1,4 +1,4 @@
-const pool = require('../config/db');
+import pool from '../config/db.js';
 
 async function getAll() {
   const [rows] = await pool.query('SELECT * FROM categories');
@@ -24,4 +24,4 @@ async function remove(id) {
   await pool.execute('DELETE FROM categories WHERE id = ?', [id]);
 }
 
-module.exports = {getAll, getById, create, update, remove};
+export {getAll, getById, create, update, remove};

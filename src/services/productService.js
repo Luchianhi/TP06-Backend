@@ -1,6 +1,6 @@
-const pool = require('../config/db');
-const productRepo = require('../repositories/productRepository');
-const categoryRepo = require('../repositories/categoryRepository');
+import pool from '../config/db.js';
+import * as productRepo from '../repositories/productRepository.js';
+import * as categoryRepo from '../repositories/categoryRepository.js';
 
 async function listProducts() {
   return await productRepo.getAll();
@@ -70,4 +70,4 @@ async function createProductWithCategory(product, categoryName) {
     connection.release();
   }
 }
-module.exports = {listProducts, getProduct, createProduct, updateProduct, deleteProduct, searchProducts, createProductWithCategory};
+export {listProducts, getProduct, createProduct, updateProduct, deleteProduct, searchProducts, createProductWithCategory};
